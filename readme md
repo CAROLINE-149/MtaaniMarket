@@ -1,4 +1,5 @@
 """
+
 # MtaaniMarket
 
 **MtaaniMarket** is an online neighborhood marketplace that connects local sellers with potential buyers. Sellers can post their goods with descriptions and prices, while buyers can browse products and contact sellers directly via WhatsApp. The platform is managed by an admin who approves sellers to ensure a safe and trustworthy marketplace.
@@ -7,13 +8,13 @@
 
 ## Features
 
-- User authentication with role selection (Buyer / Seller)  
-- Seller approval workflow managed by Admin  
-- Product CRUD (Create, Read, Update, Delete) for approved sellers  
-- Product listing and detailed product pages for buyers  
-- WhatsApp integration for buyers to contact sellers directly  
-- Responsive UI with Bootstrap  
-- Admin dashboard for managing sellers and products  
+- User authentication with role selection (Buyer / Seller)
+- Seller approval workflow managed by Admin
+- Product CRUD (Create, Read, Update, Delete) for approved sellers
+- Product listing and detailed product pages for buyers
+- WhatsApp integration for buyers to contact sellers directly
+- Responsive UI with Bootstrap
+- Admin dashboard for managing sellers and products
 
 ---
 
@@ -21,15 +22,15 @@
 
 1.Buyer– Can browse products, view details, and contact sellers.  
 2. Seller– Can create an account, wait for approval, and post products.  
-3. Admin– Approves sellers and manages platform activities.  
+3. Admin– Approves sellers and manages platform activities.
 
 ---
 
 ## Technologies Used
 
-- Backend: Django  
-- Frontend: Django Templates + Bootstrap  
-- Database:SQLite   
-- Integration: WhatsApp API for direct communication  
----
+- Backend: Django
+- Frontend: Django Templates + Bootstrap
+- Database:SQLite
+- Integration: WhatsApp API for direct communication
 
+---

@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+
 
 
 # Create your views here.
@@ -52,3 +55,11 @@ def registerUser(request):
 
     context ={"form":form}
     return render(request,'marketApp/register_form.html',context)
+
+def about(request):
+    context ={}
+    return render(request,'marketApp/about.html',context)
+
+def shop(request):
+    context ={}
+    return render(request,'marketApp/shop.html',context)

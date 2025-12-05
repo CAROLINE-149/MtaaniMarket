@@ -1,0 +1,38 @@
+{%extends 'main.html'%} 
+
+{% block content%}
+
+<div class="container my-5">
+    <h2 class="mb-4 text-center">Our Products</h2>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        <!-- Example product card -->
+        <div class="col">
+            <div class="card h-100">
+                <img src="" class="card-img-top" alt="Product 1">
+                <div class="card-body">
+                    <h5 class="card-title">Product Name</h5>
+                    <p class="card-text">Short description of the product.</p>
+                    <p class="card-text fw-bold">$19.99</p>
+                    <a href="#" class="btn btn-primary w-100">Buy Now</a>
+                </div>
+            </div>
+        </div>
+        <!-- Repeat product cards dynamically with Django -->
+        {% for product in products %}
+        <div class="col">
+            <div class="card h-100">
+                <img src="" class="card-img-top" alt="{{ product.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description|truncatechars:50 }}</p>
+                    <p class="card-text fw-bold">${{ product.price }}</p>
+                    <a href="" class="btn btn-primary w-100">Buy Now</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+

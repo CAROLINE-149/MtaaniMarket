@@ -1,0 +1,87 @@
+{%extends 'main.html'%} 
+
+{% block content%}
+{% load static %}
+
+<!-- HEADER SECTION -->
+<header class="bg-success text-white py-5 text-center">
+    <div class="container">
+        <h1 class="fw-bold">About MtaaniMarket</h1>
+        <p class="lead">Your trusted neighborhood online marketplace</p>
+    </div>
+</header>
+
+<!-- ABOUT CONTENT -->
+<section class="py-5">
+    <div class="container">
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-8 text-center">
+                <img src="{% static 'marketApp/images/logo.png' %}" alt="MtaaniMarket Logo" class="img-fluid mb-3" width="180">
+                <p class="text-muted">
+                    MtaaniMarket is a modern online marketplace designed to bring neighborhood shopping closer to you. 
+                    We connect local vendors to customers, making it easier to buy essential goods within your community.
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h4 class="fw-bold">Our Mission</h4>
+                        <p>To empower small and local businesses by giving them digital tools to reach more customers and grow their income.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h4 class="fw-bold">Our Vision</h4>
+                        <p>A future where every local vendor can operate online and offer customers a smooth and reliable shopping experience.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h4 class="fw-bold">What We Offer</h4>
+                        <ul>
+                            <li>Fast neighborhood delivery</li>
+                            <li>Verified local vendors</li>
+                            <li>Easy online shopping</li>
+                            <li>Secure user accounts</li>
+                            <li>Wide range of products</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- WHY CHOOSE US -->
+        <div class="mt-5">
+            <h3 class="text-center fw-bold mb-3">Why Choose Us?</h3>
+            <ul class="list-group list-group-flush shadow-sm">
+                <li class="list-group-item">✔ Support local businesses</li>
+                <li class="list-group-item">✔ Affordable & fast delivery</li>
+                <li class="list-group-item">✔ Safe and secure shopping</li>
+                <li class="list-group-item">✔ User-friendly experience</li>
+            </ul>
+        </div>
+
+        <!-- CONTACT -->
+        <div class="text-center mt-5">
+            <h4 class="fw-bold">Contact Us</h4>
+            <p>Email: support@mtaanimarket.com</p>
+            <p>Phone: +254 740 562 699</p>
+            <p>Location: Nairobi, Kenya</p>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
