@@ -1,0 +1,401 @@
+{% extends 'main.html' %}
+
+{% block title %}Order Details #{{ order.order_number }} - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    {% if request.user.profile.role == 'buyer' %}
+                    <li class="breadcrumb-item"><a href="{% url 'my_orders' %}">My Orders</a></li>
+                    {% else %}
+                    <li class="breadcrumb-item"><a href="{% url 'seller_orders' %}">Seller Orders</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active">Order #{{ order.order_number }}</li>
+                </ol>
+            </nav>
+            
+            <!-- Order Header -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center {% if order.status == 'completed' %}bg-success text-white
+                                                                                       {% elif order.status == 'cancelled' %}bg-danger text-white
+                                                                                       {% elif order.status == 'confirmed' %}bg-info text-white
+                                                                                       {% else %}bg-warning text-dark{% endif %}">
+                    <div>
+                        <h5 class="mb-0">Order #{{ order.order_number }}</h5>
+                        <small class="mb-0">{{ order.created_at|date:"F d, Y - h:i A" }}</small>
+                    </div>
+                    <div>
+                        <span class="badge {% if order.status == 'completed' %}bg-light text-success
+                                          {% elif order.status == 'cancelled' %}bg-light text-danger
+                                          {% elif order.status == 'confirmed' %}bg-light text-info
+                                          {% else %}bg-light text-warning{% endif %} p-2">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Status Timeline -->
+                   <div class="mb-4">
+    <h6 class="mb-3">Order Progress</h6>
+    <div class="progress" style="height: 30px;">
+        {% if order.status == 'completed' %}
+        <div class="progress-bar bg-success" role="progressbar" style="width: 100%;">
+            {{ order.get_status_display }}
+        </div>
+        {% elif order.status == 'cancelled' %}
+        <div class="progress-bar bg-danger" role="progressbar" style="width: 100%;">
+            {{ order.get_status_display }}
+        </div>
+        {% elif order.status == 'confirmed' %}
+        <div class="progress-bar bg-info" role="progressbar" style="width: 80%;">
+            {{ order.get_status_display }}
+        </div>
+        {% elif order.status == 'negotiating' %}
+        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%;">
+            {{ order.get_status_display }}
+        </div>
+        {% elif order.status == 'contacted' %}
+        <div class="progress-bar bg-warning" role="progressbar" style="width: 40%;">
+            {{ order.get_status_display }}
+        </div>
+        {% else %}
+        <div class="progress-bar bg-warning" role="progressbar" style="width: 20%;">
+            {{ order.get_status_display }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="d-flex justify-content-between mt-2 small text-muted">
+        <span>Interested</span>
+        <span>Contacted</span>
+        <span>Negotiating</span>
+        <span>Confirmed</span>
+        <span>Completed</span>
+    </div>
+</div>
+            
+            <!-- Product Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-box me-2"></i>Product Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {% if order.product.images.first %}
+                            <img src="{{ order.product.images.first.image.url }}" 
+                                 class="img-fluid rounded border" 
+                                 alt="{{ order.product.title }}"
+                                 style="max-height: 150px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                 style="height: 150px;">
+                                <i class="fas fa-image fa-2x text-secondary"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h5>{{ order.product.title }}</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th width="140">Original Price:</th>
+                                    <td class="text-success">Ksh {{ order.product.price }}</td>
+                                </tr>
+                                {% if order.agreed_price %}
+                                <tr>
+                                    <th>Agreed Price:</th>
+                                    <td class="text-success fw-bold">Ksh {{ order.agreed_price }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Condition:</th>
+                                    <td>{{ order.product.get_condition_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Category:</th>
+                                    <td>{{ order.product.category.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Location:</th>
+                                    <td>{{ order.product.location }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Quantity:</th>
+                                    <td>{{ order.quantity }}</td>
+                                </tr>
+                            </table>
+                            <a href="{% url 'product_detail' order.product.id %}" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-eye me-1"></i>View Product
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Participants -->
+            <div class="row mb-4">
+                <!-- Buyer Information -->
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-user me-2"></i>Buyer Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if order.buyer.profile.profile_picture %}
+                                <img src="{{ order.buyer.profile.profile_picture.url }}" 
+                                     class="rounded-circle me-3" 
+                                     width="50" height="50"
+                                     alt="{{ order.buyer.username }}">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 50px; height: 50px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-1">{{ order.buyer.username }}</h6>
+                                    {% if order.buyer.profile.rating > 0 %}
+                                    <div class="small">
+                                        <i class="fas fa-star text-warning"></i>
+                                        {{ order.buyer.profile.rating|floatformat:1 }}
+                                        ({{ order.buyer.profile.total_ratings }} reviews)
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if order.buyer_contact %}
+                            <p class="mb-1">
+                                <i class="fas fa-phone me-2 text-muted"></i>
+                                {{ order.buyer_contact }}
+                                {% if order.buyer.profile.whatsapp_number == order.buyer_contact or order.buyer.profile.phone_number == order.buyer_contact %}
+                                <a href="https://wa.me/{{ order.buyer_contact|cut:' '|cut:'+'|cut:'-' }}" 
+                                   class="btn btn-sm btn-success ms-2" target="_blank">
+                                    <i class="fab fa-whatsapp"></i> WhatsApp
+                                </a>
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            {% if order.meeting_preference %}
+                            <p class="mb-0">
+                                <i class="fas fa-handshake me-2 text-muted"></i>
+                                <strong>Prefers:</strong> 
+                                {% if order.meeting_preference == 'pickup' %}Pickup
+                                {% elif order.meeting_preference == 'delivery' %}Delivery
+                                {% elif order.meeting_preference == 'meetup' %}Meetup
+                                {% else %}Not sure{% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            <a href="{% url 'view_profile' order.buyer.username %}" class="btn btn-sm btn-outline-primary mt-3">
+                                <i class="fas fa-user-circle me-1"></i>View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seller Information -->
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-store me-2"></i>Seller Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if order.seller.profile.profile_picture %}
+                                <img src="{{ order.seller.profile.profile_picture.url }}" 
+                                     class="rounded-circle me-3" 
+                                     width="50" height="50"
+                                     alt="{{ order.seller.username }}">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 50px; height: 50px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-1">{{ order.seller.username }}</h6>
+                                    {% if order.seller.profile.rating > 0 %}
+                                    <div class="small">
+                                        <i class="fas fa-star text-warning"></i>
+                                        {{ order.seller.profile.rating|floatformat:1 }}
+                                        ({{ order.seller.profile.total_ratings }} reviews)
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if order.seller.profile.phone_number %}
+                            <p class="mb-1">
+                                <i class="fas fa-phone me-2 text-muted"></i>
+                                {{ order.seller.profile.phone_number }}
+                                <a href="https://wa.me/{{ order.seller.profile.phone_number|cut:' '|cut:'+'|cut:'-' }}" 
+                                   class="btn btn-sm btn-success ms-2" target="_blank">
+                                    <i class="fab fa-whatsapp"></i> WhatsApp
+                                </a>
+                            </p>
+                            {% endif %}
+                            
+                            {% if order.seller.profile.location %}
+                            <p class="mb-0">
+                                <i class="fas fa-map-marker-alt me-2 text-muted"></i>
+                                {{ order.seller.profile.location }}
+                            </p>
+                            {% endif %}
+                            
+                            <a href="{% url 'view_profile' order.seller.username %}" class="btn btn-sm btn-outline-primary mt-3">
+                                <i class="fas fa-user-circle me-1"></i>View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages & Communication -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-comments me-2"></i>Communication</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Buyer's Initial Message -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2">Buyer's Message</h6>
+                        <div class="bg-light p-3 rounded">
+                            {{ order.message|default:"No message provided"|linebreaks }}
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="fas fa-clock me-1"></i> Sent on {{ order.created_at|date:"F d, Y - h:i A" }}
+                        </small>
+                    </div>
+                    
+                    <!-- Seller's Notes -->
+                    {% if order.notes %}
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2">Seller's Notes</h6>
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            {{ order.notes|linebreaks }}
+                        </div>
+                        {% if order.updated_at %}
+                        <small class="text-muted mt-2 d-block">
+                            <i class="fas fa-clock me-1"></i> Last updated {{ order.updated_at|date:"F d, Y - h:i A" }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- WhatsApp Contact History -->
+                    {% if order.whatsapp_contacted %}
+                    <div class="alert alert-success">
+                        <i class="fab fa-whatsapp me-2"></i>
+                        <strong>WhatsApp Contacted:</strong> 
+                        The buyer has been contacted via WhatsApp.
+                        {% with whatsapp_contacts=order.whatsapp_contacts.all %}
+                        {% if whatsapp_contacts %}
+                        <div class="mt-2">
+                            <small>
+                                <i class="fas fa-history me-1"></i>
+                                Contacted {{ whatsapp_contacts.first.contact_time|timesince }} ago
+                            </small>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <!-- Different actions based on user role and order status -->
+                        {% if request.user.profile.role == 'seller' and order.seller == request.user %}
+                            {% if order.status != 'completed' and order.status != 'cancelled' %}
+                            <a href="{% url 'update_order_status' order.id %}" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Update Status
+                            </a>
+                            {% endif %}
+                            
+                            {% if order.buyer.profile.phone_number %}
+                            <a href="https://wa.me/{{ order.buyer.profile.phone_number|cut:' '|cut:'+'|cut:'-' }}?text=Hello%20{{ order.buyer.username }}%2C%20about%20your%20order%20%23{{ order.order_number }}" 
+                               class="btn btn-success" target="_blank">
+                                <i class="fab fa-whatsapp me-2"></i>Contact Buyer
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{% url 'start_conversation' order.buyer.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-envelope me-2"></i>Send Message
+                            </a>
+                            
+                        {% elif request.user.profile.role == 'buyer' and order.buyer == request.user %}
+                            {% if order.status == 'completed' and not order.reviews.exists %}
+                            <a href="{% url 'leave_review' order.id %}" class="btn btn-warning">
+                                <i class="fas fa-star me-2"></i>Leave Review
+                            </a>
+                            {% endif %}
+                            
+                            {% if order.seller.profile.phone_number %}
+                            <a href="https://wa.me/{{ order.seller.profile.phone_number|cut:' '|cut:'+'|cut:'-' }}?text=Hello%20{{ order.seller.username }}%2C%20about%20my%20order%20%23{{ order.order_number }}" 
+                               class="btn btn-success" target="_blank">
+                                <i class="fab fa-whatsapp me-2"></i>Contact Seller
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{% url 'start_conversation' order.seller.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-envelope me-2"></i>Send Message
+                            </a>
+                            
+                            {% if order.status == 'interested' or order.status == 'contacted' %}
+                            <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                <i class="fas fa-times me-2"></i>Cancel Order
+                            </button>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <a href="{% if request.user.profile.role == 'buyer' %}{% url 'my_orders' %}{% else %}{% url 'seller_orders' %}{% endif %}" 
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel order <strong>#{{ order.order_number }}</strong>?</p>
+                <p class="text-danger small">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+                <form method="POST" action="{% url 'update_order_status' order.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-danger">Yes, Cancel Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

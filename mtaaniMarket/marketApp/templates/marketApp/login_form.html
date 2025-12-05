@@ -1,18 +1,68 @@
 {% extends 'main.html' %}
 
 {% block content %}
-<form action="" method="POST">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <input type="text" class="form-control" id="username" name="username" >
-     </div>
-    <div class="mb-3">
-        <label for="exampleInputPassword1" class="form-label">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" name="password">
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="login-card shadow-lg p-4 rounded-4 fade-in" style="width: 100%; max-width: 420px;">
+
+        <h3 class="text-center mb-4 fw-bold text-success">Login</h3>
+
+        <form action="" method="POST">
+            {% csrf_token %}
+
+            <!-- USERNAME -->
+            <div class="mb-3">
+                <label for="username" class="form-label fw-semibold">Username</label>
+                <input type="text" class="form-control py-2" id="username" name="username"
+                       placeholder="Enter your username">
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="mb-3">
+                <label for="password" class="form-label fw-semibold">Password</label>
+                <input type="password" class="form-control py-2" id="password" name="password"
+                       placeholder="Enter your password">
+            </div>
+
+            <!-- BUTTON -->
+            <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Login</button>
+
+            <!-- REGISTER LINK -->
+            <div class="text-center mt-3">
+                <a href="{% url 'register' %}" class="text-success text-decoration-none">
+                    Don't have an account? Register
+                </a>
+            </div>
+
+        </form>
     </div>
-   
-    <button type="submit" class="btn btn-success">Login</button>
-<a href="{% url 'register' %}" class="text-decoration-none mx-2">No Account?</a>
-</form>
+</div>
+
+
+<style>
+    /* Smooth Fade Animation */
+    .fade-in {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInUp .6s forwards;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Login Card Styling */
+    .login-card {
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .login-card:hover {
+        transform: scale(1.01);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+</style>
 {% endblock %}

@@ -1,0 +1,243 @@
+{% extends 'main.html' %}
+
+{% block title %}Notifications - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-bell me-2 text-primary"></i>Notifications</h2>
+                    <p class="text-muted mb-0">Stay updated with your market activities</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'mark_all_read' %}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-check-double me-1"></i>Mark All Read
+                    </a>
+                    <a href="{% url 'clear_notifications' %}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash me-1"></i>Clear All
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notification Tabs -->
+            <div class="card mb-4">
+                <div class="card-body p-0">
+                    <ul class="nav nav-tabs nav-fill">
+                        <li class="nav-item">
+                            <a class="nav-link {% if not active_tab or active_tab == 'all' %}active{% endif %}" 
+                               href="{% url 'notifications' %}?tab=all">
+                                <i class="fas fa-list me-1"></i>All 
+                                <span class="badge bg-secondary">{{ total_count }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_tab == 'unread' %}active{% endif %}" 
+                               href="{% url 'notifications' %}?tab=unread">
+                                <i class="fas fa-envelope me-1"></i>Unread 
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_tab == 'orders' %}active{% endif %}" 
+                               href="{% url 'notifications' %}?tab=orders">
+                                <i class="fas fa-shopping-cart me-1"></i>Orders 
+                                <span class="badge bg-info">{{ order_count }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_tab == 'messages' %}active{% endif %}" 
+                               href="{% url 'notifications' %}?tab=messages">
+                                <i class="fas fa-comments me-1"></i>Messages 
+                                <span class="badge bg-warning">{{ message_count }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_tab == 'system' %}active{% endif %}" 
+                               href="{% url 'notifications' %}?tab=system">
+                                <i class="fas fa-cog me-1"></i>System 
+                                <span class="badge bg-secondary">{{ system_count }}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Notifications List -->
+            {% if notifications %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications %}
+                        <div class="list-group-item {% if not notification.is_read %}bg-light{% endif %}">
+                            <div class="d-flex align-items-start">
+                                <!-- Notification Icon -->
+                                <div class="flex-shrink-0 me-3 mt-1">
+                                    {% if notification.notification_type == 'order' %}
+                                        <span class="badge bg-info p-2">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </span>
+                                    {% elif notification.notification_type == 'message' %}
+                                        <span class="badge bg-warning p-2">
+                                            <i class="fas fa-comments"></i>
+                                        </span>
+                                    {% elif notification.notification_type == 'product' %}
+                                        <span class="badge bg-success p-2">
+                                            <i class="fas fa-box"></i>
+                                        </span>
+                                    {% elif notification.notification_type == 'review' %}
+                                        <span class="badge bg-primary p-2">
+                                            <i class="fas fa-star"></i>
+                                        </span>
+                                    {% elif notification.notification_type == 'system' %}
+                                        <span class="badge bg-secondary p-2">
+                                            <i class="fas fa-cog"></i>
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-dark p-2">
+                                            <i class="fas fa-bell"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Notification Content -->
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1 {% if not notification.is_read %}fw-bold{% endif %}">
+                                                {{ notification.title }}
+                                            </h6>
+                                            <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ notification.created_at|timesince }} ago
+                                            </small>
+                                        </div>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            {% if not notification.is_read %}
+                                            <a href="{% url 'mark_as_read' notification.id %}" 
+                                               class="btn btn-outline-success btn-sm" 
+                                               title="Mark as read">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'delete_notification' notification.id %}" 
+                                               class="btn btn-outline-danger btn-sm" 
+                                               title="Delete"
+                                               onclick="return confirm('Are you sure you want to delete this notification?');">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Action Buttons based on notification type -->
+                                    {% if notification.link %}
+                                    <div class="mt-2">
+                                        <a href="{{ notification.link }}" class="btn btn-sm btn-outline-primary">
+                                            {% if notification.notification_type == 'order' %}
+                                                <i class="fas fa-eye me-1"></i>View Order
+                                            {% elif notification.notification_type == 'message' %}
+                                                <i class="fas fa-reply me-1"></i>Reply
+                                            {% elif notification.notification_type == 'product' %}
+                                                <i class="fas fa-box me-1"></i>View Product
+                                            {% elif notification.notification_type == 'review' %}
+                                                <i class="fas fa-star me-1"></i>See Review
+                                            {% else %}
+                                                <i class="fas fa-external-link-alt me-1"></i>View Details
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% if notifications.has_other_pages %}
+            <nav aria-label="Notifications pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if notifications.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" 
+                           href="?page={{ notifications.previous_page_number }}{% if active_tab %}&tab={{ active_tab }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in notifications.paginator.page_range %}
+                        {% if notifications.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > notifications.number|add:'-3' and num < notifications.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="?page={{ num }}{% if active_tab %}&tab={{ active_tab }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if notifications.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" 
+                           href="?page={{ notifications.next_page_number }}{% if active_tab %}&tab={{ active_tab }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-bell-slash fa-4x text-muted"></i>
+                </div>
+                <h4>No Notifications</h4>
+                <p class="text-muted mb-4">
+                    {% if active_tab == 'unread' %}
+                    You have no unread notifications. Great!
+                    {% elif active_tab == 'orders' %}
+                    You have no order notifications yet.
+                    {% elif active_tab == 'messages' %}
+                    You have no message notifications.
+                    {% elif active_tab == 'system' %}
+                    You have no system notifications.
+                    {% else %}
+                    You're all caught up! No notifications at the moment.
+                    {% endif %}
+                </p>
+                <!-- FIXED: Changed 'marketplace' to 'shop' -->
+                <a href="{% url 'shop' %}" class="btn btn-primary">
+                    <i class="fas fa-store me-2"></i>Browse Products
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Optional: Simple preferences placeholder (no form) -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-cog me-2"></i>Notification Settings</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Notification preferences feature is coming soon!</p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Currently, you receive notifications for all activities. 
+                        You can manage individual notifications using the buttons above.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

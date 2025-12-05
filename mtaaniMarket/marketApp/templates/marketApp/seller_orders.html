@@ -1,0 +1,244 @@
+{% extends 'main.html' %}
+
+{% block title %}My Orders - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-shopping-cart me-2 text-success"></i>Order Management</h2>
+        <span class="badge bg-success">{{ orders.count }} orders</span>
+    </div>
+    
+    <!-- Filter Tabs -->
+    <div class="card mb-4">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs nav-fill">
+                <li class="nav-item">
+                    <a class="nav-link {% if not status_filter %}active{% endif %}" href="{% url 'seller_orders' %}">
+                        All Orders <span class="badge bg-secondary">{{ total_count|default:"0" }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'interested' %}active{% endif %}" href="{% url 'seller_orders' %}?status=interested">
+                        New Interests <span class="badge bg-warning">{{ new_count|default:"0" }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'confirmed' %}active{% endif %}" href="{% url 'seller_orders' %}?status=confirmed">
+                        Confirmed <span class="badge bg-info">{{ confirmed_count|default:"0" }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'completed' %}active{% endif %}" href="{% url 'seller_orders' %}?status=completed">
+                        Completed <span class="badge bg-success">{{ completed_count|default:"0" }}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-success">
+                <tr>
+                    <th>Order #</th>
+                    <th>Product</th>
+                    <th>Buyer</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <strong>#{{ order.order_number }}</strong>
+                        {% if order.whatsapp_contacted %}
+                        <span class="badge bg-success small" title="WhatsApp Contacted">
+                            <i class="fab fa-whatsapp"></i>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'product_detail' order.product.id %}" class="text-decoration-none">
+                            {{ order.product.title|truncatechars:30 }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'view_profile' order.buyer.username %}" class="text-decoration-none">
+                            {{ order.buyer.username }}
+                        </a>
+                        {% if order.buyer_contact %}
+                        <br>
+                        <small class="text-muted">{{ order.buyer_contact }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-success fw-bold">Ksh {{ order.agreed_price|default:order.product.price }}</td>
+                    <td>
+                        <span class="badge bg-{% if order.status == 'interested' %}warning
+                                             {% elif order.status == 'contacted' %}info
+                                             {% elif order.status == 'negotiating' %}primary
+                                             {% elif order.status == 'confirmed' %}info
+                                             {% elif order.status == 'completed' %}success
+                                             {% elif order.status == 'cancelled' %}danger
+                                             {% else %}secondary{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#orderModal{{ order.id }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#statusModal{{ order.id }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {% if order.seller.profile.whatsapp_number %}
+                            <a href="https://wa.me/{{ order.buyer.profile.phone_number|default:order.buyer_contact }}?text=Hello%20{{ order.buyer.username }}%2C%20I%20saw%20your%20interest%20in%20my%20product%20'{{ order.product.title }}'" 
+                               class="btn btn-outline-success" target="_blank" title="Contact via WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                
+                <!-- Order Details Modal -->
+                <div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Order Details #{{ order.order_number }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Product Information</h6>
+                                        <p><strong>Product:</strong> {{ order.product.title }}</p>
+                                        <p><strong>Price:</strong> Ksh {{ order.product.price }}</p>
+                                        {% if order.agreed_price %}
+                                        <p><strong>Agreed Price:</strong> Ksh {{ order.agreed_price }}</p>
+                                        {% endif %}
+                                        <p><strong>Condition:</strong> {{ order.product.get_condition_display }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Buyer Information</h6>
+                                        <p><strong>Name:</strong> {{ order.buyer.username }}</p>
+                                        <p><strong>Contact:</strong> {{ order.buyer_contact|default:"Not provided" }}</p>
+                                        <p><strong>Meeting Preference:</strong> {{ order.meeting_preference|default:"Not specified" }}</p>
+                                    </div>
+                                </div>
+                                
+                                <hr>
+                                
+                                <h6>Message from Buyer</h6>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        {{ order.message|default:"No message provided" }}
+                                    </div>
+                                </div>
+                                
+                                {% if order.notes %}
+                                <h6 class="mt-3">Your Notes</h6>
+                                <div class="card">
+                                    <div class="card-body">
+                                        {{ order.notes }}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Update Status Modal -->
+                <div class="modal fade" id="statusModal{{ order.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Update Order Status</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{% url 'update_order_status' order.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select name="status" class="form-select" required>
+                                            {% for value, label in order.STATUS_CHOICES %}
+                                            <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Notes (Optional)</label>
+                                        <textarea name="notes" class="form-control" rows="3" 
+                                                  placeholder="Add any notes about this order...">{{ order.notes|default:"" }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success">Update Status</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% else %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-clipboard-list fa-4x text-muted"></i>
+        </div>
+        <h4>No Orders Yet</h4>
+        <p class="text-muted mb-4">
+            {% if status_filter %}
+            No orders with status "{{ status_filter }}".
+            {% else %}
+            When buyers express interest in your products, they'll appear here.
+            {% endif %}
+        </p>
+        <a href="{% url 'seller_products' %}" class="btn btn-success">
+            <i class="fas fa-box me-2"></i>View Your Products
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+// Quick status update buttons
+function updateStatus(orderId, status) {
+    fetch(`/update-order-status/${orderId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}
+{% endblock %}

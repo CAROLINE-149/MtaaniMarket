@@ -1,9 +1,225 @@
-{%extends 'main.html'%} 
+{% extends 'main.html' %}
 
-{% block content%}
+{% block title %}Shop - Mtaani Market{% endblock %}
 
-{% load static %}
-<!-- SHOP HEADER -->
+{% block content %}
+<div class="row">
+    <!-- Filters Sidebar -->
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'shop' %}">
+                    <div class="mb-3">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ search_query }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Min Price</label>
+                            <input type="number" name="min_price" class="form-control" placeholder="Min" value="{{ min_price }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Max Price</label>
+                            <input type="number" name="max_price" class="form-control" placeholder="Max" value="{{ max_price }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <input type="text" name="location" class="form-control" placeholder="Enter location" value="{{ selected_location }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Sort By</label>
+                        <select name="sort" class="form-select">
+                            <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+                            <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="-price" {% if sort_by == '-price' %}selected{% endif %}>Price: High to Low</option>
+                            <option value="-views" {% if sort_by == '-views' %}selected{% endif %}>Most Viewed</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-search me-2"></i>Apply Filters
+                    </button>
+                    <a href="{% url 'shop' %}" class="btn btn-outline-secondary w-100 mt-2">
+                        <i class="fas fa-times me-2"></i>Clear Filters
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products List -->
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Products</h2>
+            <span class="badge bg-success">{{ page_obj.paginator.count }} products found</span>
+        </div>
+        
+        {% if page_obj %}
+        <div class="row">
+            {% for product in page_obj %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 product-card">
+                    {% if product.images.first %}
+                    <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-image fa-3x text-secondary"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.title|truncatechars:40 }}</h5>
+                        <p class="card-text text-muted small mb-2">{{ product.description|truncatechars:60 }}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="h5 text-success mb-0">Ksh {{ product.price }}</span>
+                            {% if product.is_negotiable %}
+                            <span class="badge bg-warning text-dark">Negotiable</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between small text-muted mb-3">
+                            <span><i class="fas fa-map-marker-alt"></i> {{ product.location }}</span>
+                            <span><i class="fas fa-eye"></i> {{ product.views }}</span>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                            {% if request.user.is_authenticated and request.user.profile.role == 'buyer' %}
+                            <button class="btn btn-sm btn-outline-warning wishlist-btn" data-product-id="{{ product.id }}">
+                                <i class="far fa-heart me-1"></i>Add to Wishlist
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <small class="text-muted">
+                            Posted {{ product.created_at|timesince }} ago
+                            {% if product.seller.profile %}
+                            by <a href="{% url 'view_profile' product.seller.username %}" class="text-success">
+                                {{ product.seller.username }}
+                            </a>
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4>No products found</h4>
+            <p class="text-muted">Try adjusting your search filters</p>
+            <a href="{% url 'shop' %}" class="btn btn-success">Clear Filters</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
 
+{% block extra_js %}
+<script>
+// Wishlist functionality
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.wishlist-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const btn = this;
+            
+            fetch('/api/toggle-wishlist/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.added) {
+                        btn.innerHTML = '<i class="fas fa-heart me-1"></i>In Wishlist';
+                        btn.classList.remove('btn-outline-warning');
+                        btn.classList.add('btn-warning');
+                    } else {
+                        btn.innerHTML = '<i class="far fa-heart me-1"></i>Add to Wishlist';
+                        btn.classList.remove('btn-warning');
+                        btn.classList.add('btn-outline-warning');
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
 {% endblock %}
-
+{% endblock %}

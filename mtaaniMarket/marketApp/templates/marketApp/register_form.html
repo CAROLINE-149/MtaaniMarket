@@ -1,12 +1,83 @@
 {% extends 'main.html' %}
 
 {% block content %}
-<div class="container mt-5" style="max-width: 500px;">
-    <h2 class="mb-4 text-center">Register</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary w-100">Register</button>
-    </form>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="register-card shadow-lg p-4 rounded-4 fade-in" style="width: 100%; max-width: 450px;">
+
+        <h3 class="text-center mb-4 fw-bold text-success">Create Account</h3>
+
+        <!-- GLOBAL NON-FIELD ERRORS (e.g. password mismatch) -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            {% for field in form %}
+                
+                <div class="mb-3">
+                    <label class="fw-semibold">{{ field.label }}</label>
+
+                    {{ field }}
+
+                    <!-- FIELD ERRORS (Appear ONLY when user fails validation) -->
+                    {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ field.errors|striptags }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+            <button type="submit" class="btn btn-success w-100 py-2 fw-bold mt-2">
+                Register
+            </button>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'login' %}" class="text-success text-decoration-none">
+                    Already have an account? Login
+                </a>
+            </div>
+
+        </form>
+
+    </div>
 </div>
+
+<style>
+    .fade-in {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInUp .6s forwards;
+    }
+
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .register-card:hover {
+        transform: scale(1.01);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    /* Django default <input> gets Bootstrap-like style */
+    input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        transition: 0.2s;
+    }
+
+    input:focus {
+        border-color: #198754;
+        box-shadow: 0 0 6px rgba(25, 135, 84, .3);
+        outline: none;
+    }
+</style>
 {% endblock %}

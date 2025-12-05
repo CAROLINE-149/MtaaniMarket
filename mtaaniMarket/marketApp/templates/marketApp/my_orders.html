@@ -1,0 +1,353 @@
+{% extends 'main.html' %}
+
+{% block title %}My Orders - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-shopping-bag me-2 text-primary"></i>My Orders</h2>
+                    <p class="text-muted mb-0">Track and manage all your purchases</p>
+                </div>
+                <div>
+                    <a href="{% url 'shop' %}" class="btn btn-success">
+                        <i class="fas fa-plus-circle me-2"></i>Continue Shopping
+                    </a>
+                </div>
+            </div>
+
+            <!-- Order Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="fw-bold me-2">Filter by Status:</span>
+                                <a href="{% url 'my_orders' %}" 
+                                   class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                    All <span class="badge bg-secondary">{{ total_orders|default:"0" }}</span>
+                                </a>
+                                <a href="{% url 'my_orders' %}?status=interested" 
+                                   class="btn btn-sm {% if status_filter == 'interested' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                                    Interested <span class="badge bg-warning">{{ interested_count|default:"0" }}</span>
+                                </a>
+                                <a href="{% url 'my_orders' %}?status=contacted" 
+                                   class="btn btn-sm {% if status_filter == 'contacted' %}btn-info{% else %}btn-outline-info{% endif %}">
+                                    Contacted <span class="badge bg-info">{{ contacted_count|default:"0" }}</span>
+                                </a>
+                                <a href="{% url 'my_orders' %}?status=confirmed" 
+                                   class="btn btn-sm {% if status_filter == 'confirmed' %}btn-info{% else %}btn-outline-info{% endif %}">
+                                    Confirmed <span class="badge bg-info">{{ confirmed_count|default:"0" }}</span>
+                                </a>
+                                <a href="{% url 'my_orders' %}?status=completed" 
+                                   class="btn btn-sm {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                                    Completed <span class="badge bg-success">{{ completed_count|default:"0" }}</span>
+                                </a>
+                                <a href="{% url 'my_orders' %}?status=cancelled" 
+                                   class="btn btn-sm {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                    Cancelled <span class="badge bg-danger">{{ cancelled_count|default:"0" }}</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mt-3 mt-md-0">
+                            <form method="GET" class="d-flex">
+                                <input type="text" name="search" class="form-control form-control-sm" 
+                                       placeholder="Search orders..." value="{{ search_query|default:'' }}">
+                                <button type="submit" class="btn btn-sm btn-primary ms-2">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders List -->
+            {% if orders %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order Details</th>
+                                    <th>Product</th>
+                                    <th>Seller</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong class="d-block">#{{ order.order_number }}</strong>
+                                            <small class="text-muted">
+                                                <i class="fas fa-hashtag me-1"></i>ID: {{ order.id }}
+                                            </small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% with order.product.images.all|first as first_image %}
+                                            {% if first_image %}
+                                            <img src="{{ first_image.image.url }}" 
+                                                 class="rounded me-2" 
+                                                 width="50" height="50"
+                                                 alt="{{ order.product.title }}"
+                                                 style="object-fit: cover;">
+                                            {% else %}
+                                            <div class="rounded bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="fas fa-box"></i>
+                                            </div>
+                                            {% endif %}
+                                            {% endwith %}
+                                            <div>
+                                                <small class="d-block fw-bold">{{ order.product.title|truncatechars:30 }}</small>
+                                                <small class="text-muted">{{ order.product.category.name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if order.seller.profile.profile_picture %}
+                                            <img src="{{ order.seller.profile.profile_picture.url }}" 
+                                                 class="rounded-circle me-2" 
+                                                 width="30" height="30"
+                                                 alt="{{ order.seller.username }}">
+                                            {% else %}
+                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 30px; height: 30px; font-size: 12px;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <small class="d-block">{{ order.seller.username }}</small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    {{ order.seller.profile.rating|floatformat:1 }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if order.agreed_price %}
+                                        <span class="text-success fw-bold">Ksh {{ order.agreed_price }}</span>
+                                        <br>
+                                        <small class="text-muted">
+                                            <del>Ksh {{ order.product.price }}</del>
+                                        </small>
+                                        {% else %}
+                                        <span class="text-success">Ksh {{ order.product.price }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if order.status == 'completed' %}success
+                                                              {% elif order.status == 'cancelled' %}danger
+                                                              {% elif order.status == 'confirmed' %}info
+                                                              {% elif order.status == 'contacted' %}info
+                                                              {% else %}warning{% endif %} p-2">
+                                            <i class="fas {% if order.status == 'completed' %}fa-check-circle
+                                                        {% elif order.status == 'cancelled' %}fa-times-circle
+                                                        {% elif order.status == 'confirmed' %}fa-check
+                                                        {% else %}fa-clock{% endif %} me-1"></i>
+                                            {{ order.get_status_display }}
+                                        </span>
+                                        {% if order.status == 'completed' and not order.reviewed %}
+                                        <small class="d-block text-warning mt-1">
+                                            <i class="fas fa-star"></i> Review pending
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="d-block">{{ order.created_at|date:"M d, Y" }}</small>
+                                        <small class="text-muted">{{ order.created_at|date:"g:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'order_detail' order.id %}" 
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if order.status == 'completed' and not order.reviewed %}
+                                            <a href="{% url 'leave_review' order.id %}" 
+                                               class="btn btn-outline-warning" title="Leave Review">
+                                                <i class="fas fa-star"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if order.seller.profile.phone_number %}
+                                            <a href="https://wa.me/{{ order.seller.profile.phone_number|cut:' '|cut:'+'|cut:'-' }}?text=Hello%20{{ order.seller.username }}%2C%20about%20order%20%23{{ order.order_number }}" 
+                                               class="btn btn-outline-success" title="Contact Seller" target="_blank">
+                                                <i class="fab fa-whatsapp"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State when filtered -->
+            {% elif status_filter or search_query %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-search fa-4x text-muted"></i>
+                </div>
+                <h4>No Orders Found</h4>
+                <p class="text-muted mb-4">
+                    {% if status_filter %}
+                    You don't have any orders with status "{{ status_filter }}".
+                    {% else %}
+                    No orders match your search "{{ search_query }}".
+                    {% endif %}
+                </p>
+                <a href="{% url 'my_orders' %}" class="btn btn-primary me-2">
+                    <i class="fas fa-list me-2"></i>View All Orders
+                </a>
+                <a href="{% url 'shop' %}" class="btn btn-success">
+                    <i class="fas fa-store me-2"></i>Browse Products
+                </a>
+            </div>
+
+            <!-- Empty State when no orders at all -->
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-shopping-bag fa-4x text-muted"></i>
+                </div>
+                <h4>No Orders Yet</h4>
+                <p class="text-muted mb-4">
+                    You haven't placed any orders yet. Start shopping to see your orders here!
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'shop' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-store me-2"></i>Browse Products
+                    </a>
+                    <a href="{% url 'buyer_home' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-home me-2"></i>Go to Dashboard
+                    </a>
+                </div>
+                
+                <!-- How it works -->
+                <div class="mt-5">
+                    <h5 class="mb-3">How to Place an Order</h5>
+                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <span class="badge bg-primary rounded-circle p-3">
+                                            <i class="fas fa-search fa-2x"></i>
+                                        </span>
+                                    </div>
+                                    <h6>1. Browse Products</h6>
+                                    <p class="small text-muted mb-0">
+                                        Explore our marketplace and find products you like.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <span class="badge bg-warning rounded-circle p-3">
+                                            <i class="fas fa-hand-point-up fa-2x"></i>
+                                        </span>
+                                    </div>
+                                    <h6>2. Express Interest</h6>
+                                    <p class="small text-muted mb-0">
+                                        Click "Express Interest" to start the buying process.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <span class="badge bg-success rounded-circle p-3">
+                                            <i class="fas fa-check-circle fa-2x"></i>
+                                        </span>
+                                    </div>
+                                    <h6>3. Complete Order</h6>
+                                    <p class="small text-muted mb-0">
+                                        Work with the seller to confirm and complete your order.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Order Status Legend -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Order Status Guide</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-warning p-2 me-2">
+                                    <i class="fas fa-clock"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-1">Interested</h6>
+                                    <p class="text-muted small mb-0">You've shown interest in the product</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-info p-2 me-2">
+                                    <i class="fas fa-comments"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-1">Contacted</h6>
+                                    <p class="text-muted small mb-0">Seller has contacted you</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-info p-2 me-2">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-1">Confirmed</h6>
+                                    <p class="text-muted small mb-0">Order details confirmed</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success p-2 me-2">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-1">Completed</h6>
+                                    <p class="text-muted small mb-0">Order successfully completed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

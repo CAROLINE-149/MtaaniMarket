@@ -1,0 +1,209 @@
+{% extends 'main.html' %}
+
+{% block title %}My Products - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-box me-2 text-success"></i>My Products</h2>
+        <a href="{% url 'add_product' %}" class="btn btn-success">
+            <i class="fas fa-plus-circle me-2"></i>Add New Product
+        </a>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="card mb-4">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs nav-fill">
+                <li class="nav-item">
+                    <a class="nav-link {% if not status_filter %}active{% endif %}" href="{% url 'seller_products' %}">
+                        All Products <span class="badge bg-secondary">{{ total_count|default:"0" }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="{% url 'seller_products' %}?status=active">
+                        Active <span class="badge bg-success">{{ active_count|default:"0" }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'sold' %}active{% endif %}" href="{% url 'seller_products' %}?status=sold">
+                        Sold <span class="badge bg-primary">{{ sold_count|default:"0" }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}" href="{% url 'seller_products' %}?status=inactive">
+                        Inactive <span class="badge bg-warning">{{ inactive_count|default:"0" }}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    {% if products %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        {% for product in products %}
+        <div class="col">
+            <div class="card h-100 shadow-sm position-relative">
+                <!-- Product Image -->
+                <div class="card-img-top" style="height: 200px; overflow: hidden; background-color: #f8f9fa;">
+                    {% with product.images.all|first as first_image %}
+                    {% if first_image %}
+                    <img src="{{ first_image.image.url }}" 
+                         alt="{{ product.title }}"
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                    <div class="h-100 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-image fa-3x text-secondary"></i>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                
+                <!-- Status Badge -->
+                <div class="position-absolute top-0 end-0 m-2">
+                    <span class="badge bg-{% if product.status == 'active' %}success
+                                         {% elif product.status == 'sold' %}primary
+                                         {% elif product.status == 'pending' %}warning
+                                         {% else %}secondary{% endif %}">
+                        {{ product.get_status_display }}
+                    </span>
+                </div>
+                
+                <!-- Product Details -->
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.title|truncatechars:40 }}</h5>
+                    <p class="card-text text-muted small mb-2">{{ product.description|truncatechars:80 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="h5 text-success mb-0">Ksh {{ product.price }}</span>
+                        {% if product.is_negotiable %}
+                        <span class="badge bg-warning text-dark">Negotiable</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between small text-muted mb-3">
+                        <span><i class="fas fa-map-marker-alt"></i> {{ product.location }}</span>
+                        <span><i class="fas fa-eye"></i> {{ product.views }}</span>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'product_detail' product.id %}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-eye me-1"></i>View
+                        </a>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ product.id }}">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Footer -->
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        Posted {{ product.created_at|timesince }} ago
+                        {% if product.orders.count > 0 %}
+                        · <span class="text-success">{{ product.orders.count }} interests</span>
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Delete Confirmation Modal -->
+            <div class="modal fade" id="deleteModal{{ product.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Delete</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete <strong>"{{ product.title }}"</strong>?</p>
+                            <p class="text-danger small">This action cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form method="POST" action="{% url 'delete_product' product.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Delete Product</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if products.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if products.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if products.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.paginator.num_pages }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-box-open fa-4x text-muted"></i>
+        </div>
+        <h4>No Products Found</h4>
+        <p class="text-muted mb-4">
+            {% if status_filter %}
+            You don't have any products with status "{{ status_filter }}".
+            {% else %}
+            You haven't added any products yet.
+            {% endif %}
+        </p>
+        <a href="{% url 'add_product' %}" class="btn btn-success btn-lg">
+            <i class="fas fa-plus-circle me-2"></i>Add Your First Product
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

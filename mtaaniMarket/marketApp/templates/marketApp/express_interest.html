@@ -1,0 +1,235 @@
+{% extends 'main.html' %}
+
+{% block title %}Express Interest - {{ product.title }} - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'shop' %}">Shop</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'product_detail' product.id %}">{{ product.title|truncatechars:30 }}</a></li>
+                    <li class="breadcrumb-item active">Express Interest</li>
+                </ol>
+            </nav>
+            
+            <!-- Product Info Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Product Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" 
+                                 class="img-fluid rounded border" 
+                                 alt="{{ product.title }}"
+                                 style="max-height: 150px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                 style="height: 150px;">
+                                <i class="fas fa-image fa-2x text-secondary"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h5>{{ product.title }}</h5>
+                            <p class="text-success h4 mb-2">Ksh {{ product.price }}</p>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-user me-1"></i> Seller: 
+                                <a href="{% url 'view_profile' product.seller.username %}" class="text-decoration-none">
+                                    {{ product.seller.username }}
+                                </a>
+                            </p>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-map-marker-alt me-1"></i> Location: {{ product.location }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Express Interest Form -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Express Interest</h5>
+                    <p class="mb-0 small">Contact the seller about this product</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Message to Seller -->
+                        <div class="form-group mb-4">
+                            <label for="message" class="form-label">
+                                <i class="fas fa-comment me-1"></i>Message to Seller *
+                            </label>
+                            <textarea name="message" id="message" 
+                                      class="form-control" 
+                                      rows="5" 
+                                      placeholder="Tell the seller why you're interested in this product. Include any questions you have about the item..."
+                                      required>{{ form.message.value|default:'' }}</textarea>
+                            <div class="form-text">
+                                Be specific about what you like about the product and any questions you have.
+                            </div>
+                            {% if form.message.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.message.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="contact_number" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>Contact Number
+                                    </label>
+                                    <input type="text" 
+                                           name="contact_number" 
+                                           id="contact_number" 
+                                           class="form-control" 
+                                           placeholder="+254 7XX XXX XXX"
+                                           value="{{ form.contact_number.value|default:request.user.profile.phone_number|default:'' }}">
+                                    <div class="form-text">
+                                        Optional. The seller will use this to contact you.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="meeting_preference" class="form-label">
+                                        <i class="fas fa-handshake me-1"></i>Meeting Preference
+                                    </label>
+                                    <select name="meeting_preference" id="meeting_preference" class="form-select">
+                                        <option value="">Select an option</option>
+                                        <option value="pickup" {% if form.meeting_preference.value == 'pickup' %}selected{% endif %}>
+                                            I can pick up
+                                        </option>
+                                        <option value="delivery" {% if form.meeting_preference.value == 'delivery' %}selected{% endif %}>
+                                            I need delivery
+                                        </option>
+                                        <option value="meetup" {% if form.meeting_preference.value == 'meetup' %}selected{% endif %}>
+                                            We can meet somewhere
+                                        </option>
+                                        <option value="not_sure" {% if form.meeting_preference.value == 'not_sure' %}selected{% endif %}>
+                                            Not sure yet
+                                        </option>
+                                    </select>
+                                    <div class="form-text">
+                                        How would you like to receive the product?
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tips for Buyers -->
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-lightbulb me-2"></i>Tips for a Successful Purchase:</h6>
+                            <ul class="mb-0 small">
+                                <li>Be clear about your interest and ask specific questions</li>
+                                <li>Confirm the product condition and details</li>
+                                <li>Discuss payment and delivery options clearly</li>
+                                <li>Always meet in safe, public places for transactions</li>
+                                <li>Never share sensitive personal information</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Product
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-paper-plane me-2"></i>Send Interest
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Alternative Contact Methods -->
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-comments me-2"></i>Other Ways to Contact Seller</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if product.seller.profile.whatsapp_number %}
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'contact_via_whatsapp' product.id %}" 
+                               class="btn btn-success w-100 d-flex align-items-center justify-content-center py-3">
+                                <i class="fab fa-whatsapp fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <strong>Contact via WhatsApp</strong>
+                                    <div class="small">Instant messaging</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="{% if product.seller.profile.whatsapp_number %}col-md-6{% else %}col-md-12{% endif %} mb-3">
+                            <a href="{% url 'start_conversation' product.seller.id %}" 
+                               class="btn btn-primary w-100 d-flex align-items-center justify-content-center py-3">
+                                <i class="fas fa-envelope fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <strong>Send Direct Message</strong>
+                                    <div class="small">Private in-app messaging</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- What Happens Next -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-question-circle me-2"></i>What Happens Next?</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-paper-plane fa-lg"></i>
+                                </div>
+                                <h6>1. Send Interest</h6>
+                                <p class="small text-muted">Your message is sent to the seller</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <div class="rounded-circle bg-warning text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-reply fa-lg"></i>
+                                </div>
+                                <h6>2. Seller Responds</h6>
+                                <p class="small text-muted">Seller contacts you within 24 hours</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <div class="rounded-circle bg-info text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-handshake fa-lg"></i>
+                                </div>
+                                <h6>3. Arrange Details</h6>
+                                <p class="small text-muted">Discuss price, delivery, and payment</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

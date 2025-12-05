@@ -1,0 +1,112 @@
+{% extends 'main.html' %}
+
+{% block title %}Edit Product - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-edit me-2 text-success"></i>Edit Product</h2>
+                <div class="btn-group">
+                    <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-success">
+                        <i class="fas fa-eye me-2"></i>View Product
+                    </a>
+                    <a href="{% url 'seller_products' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Products
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Form Card -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">{{ product.title }}</h5>
+                    <p class="mb-0 small">Edit your product information below</p>
+                </div>
+                
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Form fields would go here, similar to add_product.html -->
+                        <!-- You can reuse the same form fields from add_product.html -->
+                        <!-- But pre-populated with existing product data -->
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Form fields would be pre-populated with existing product data.
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash me-2"></i>Delete Product
+                            </button>
+                            <div class="btn-group">
+                                <a href="{% url 'seller_products' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Current Images -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Current Product Images</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for image in product.images.all %}
+                        <div class="col-4 col-md-3 mb-3">
+                            <div class="position-relative">
+                                <img src="{{ image.image.url }}" class="img-fluid rounded border" 
+                                     style="height: 150px; object-fit: cover;">
+                                {% if image.is_primary %}
+                                <span class="position-absolute top-0 start-0 bg-success text-white px-1 rounded small">
+                                    Primary
+                                </span>
+                                {% endif %}
+                                <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>"{{ product.title }}"</strong>?</p>
+                <p class="text-danger small">This action cannot be undone. All associated data will be lost.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'delete_product' product.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

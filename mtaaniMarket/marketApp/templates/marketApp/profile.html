@@ -1,0 +1,304 @@
+{% extends 'main.html' %}
+
+{% block title %}My Profile - {{ user.username }} - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-user-circle me-2 text-primary"></i>My Profile</h2>
+                    <p class="text-muted mb-0">Manage your account settings and information</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <!-- Use the existing profile URL for editing -->
+                    <a href="{% url 'profile' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Left Column - Profile Information -->
+                <div class="col-lg-4 mb-4">
+                    <!-- Profile Card -->
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center">
+                            <!-- Profile Picture -->
+                            <div class="mb-3">
+                                {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" 
+                                     class="rounded-circle border" 
+                                     width="150" height="150"
+                                     alt="{{ user.username }}"
+                                     style="object-fit: cover;">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto" 
+                                     style="width: 150px; height: 150px; font-size: 60px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- User Info -->
+                            <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
+                            <p class="text-muted mb-2">@{{ user.username }}</p>
+                            
+                            <!-- Role Badge -->
+                            <span class="badge {% if user.profile.role == 'seller' %}bg-success{% else %}bg-primary{% endif %} mb-3">
+                                <i class="fas {% if user.profile.role == 'seller' %}fa-store{% else %}fa-shopping-cart{% endif %} me-1"></i>
+                                {{ user.profile.get_role_display }}
+                            </span>
+                            
+                            <!-- Stats -->
+                            <div class="row mt-4">
+                                {% if user.profile.role == 'seller' %}
+                                <div class="col-6">
+                                    <div class="border rounded p-2">
+                                        <h5 class="mb-0 text-success">{{ user.product_set.count|default:"0" }}</h5>
+                                        <small class="text-muted">Products</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2">
+                                        <h5 class="mb-0 text-primary">{{ user.review_set.count|default:"0" }}</h5>
+                                        <small class="text-muted">Reviews</small>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="col-6">
+                                    <div class="border rounded p-2">
+                                        <h5 class="mb-0 text-info">{{ user.order_set.count|default:"0" }}</h5>
+                                        <small class="text-muted">Orders</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2">
+                                        <h5 class="mb-0 text-warning">{{ user.wishlist_set.count|default:"0" }}</h5>
+                                        <small class="text-muted">Wishlist</small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Join Date -->
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Member since {{ user.date_joined|date:"F Y" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Info Card -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-address-card me-2"></i>Contact Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                {% if user.email %}
+                                <li class="mb-2">
+                                    <i class="fas fa-envelope text-muted me-2"></i>
+                                    <a href="mailto:{{ user.email }}" class="text-decoration-none">{{ user.email }}</a>
+                                </li>
+                                {% endif %}
+                                
+                                {% if user.profile.phone_number %}
+                                <li class="mb-2">
+                                    <i class="fas fa-phone text-muted me-2"></i>
+                                    <a href="tel:{{ user.profile.phone_number }}" class="text-decoration-none">{{ user.profile.phone_number }}</a>
+                                </li>
+                                {% endif %}
+                                
+                                {% if user.profile.location %}
+                                <li class="mb-0">
+                                    <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                    {{ user.profile.location }}
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Details & Activities -->
+                <div class="col-lg-8">
+                    <!-- About Section -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-user me-2"></i>About Me</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if user.profile.bio %}
+                            <p class="mb-0">{{ user.profile.bio|linebreaks }}</p>
+                            {% else %}
+                            <p class="text-muted mb-0">
+                                <i>No bio added yet. 
+                                <a href="{% url 'profile' %}">Add a bio</a> to tell others about yourself.</i>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Rating Section (for sellers) -->
+                    {% if user.profile.role == 'seller' and user.profile.rating > 0 %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-star me-2 text-warning"></i>Ratings & Reviews</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3 text-center mb-3 mb-md-0">
+                                    <div class="display-4 text-warning">{{ user.profile.rating|floatformat:1 }}</div>
+                                    <div class="mb-2">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= user.profile.rating %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted">{{ user.review_set.count }} reviews</small>
+                                </div>
+                                <div class="col-md-9">
+                                    {% with latest_review=user.review_set.first %}
+                                    {% if latest_review %}
+                                    <div class="border-start ps-3">
+                                        <h6>Latest Review</h6>
+                                        <div class="mb-2">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= latest_review.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <small class="text-muted ms-2">{{ latest_review.created_at|date:"M d, Y" }}</small>
+                                        </div>
+                                        <p class="mb-0 text-muted">"{{ latest_review.comment|truncatechars:100 }}"</p>
+                                        <small class="text-muted">— {{ latest_review.reviewer.username }}</small>
+                                    </div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                            {% if user.profile.role == 'seller' %}
+                            <div class="mt-3">
+                                <a href="{% url 'seller_reviews' %}" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-star me-1"></i>View All Reviews
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Quick Actions -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                {% if user.profile.role == 'seller' %}
+                                <div class="col-md-4">
+                                    <a href="{% url 'seller_products' %}" class="btn btn-outline-success w-100">
+                                        <i class="fas fa-box me-1"></i>My Products
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{% url 'seller_orders' %}" class="btn btn-outline-info w-100">
+                                        <i class="fas fa-shopping-cart me-1"></i>My Orders
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{% url 'add_product' %}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-plus-circle me-1"></i>Add Product
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="col-md-4">
+                                    <a href="{% url 'my_orders' %}" class="btn btn-outline-info w-100">
+                                        <i class="fas fa-shopping-cart me-1"></i>My Orders
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{% url 'my_wishlist' %}" class="btn btn-outline-warning w-100">
+                                        <i class="fas fa-heart me-1"></i>My Wishlist
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{% url 'shop' %}" class="btn btn-outline-success w-100">
+                                        <i class="fas fa-store me-1"></i>Browse Products
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Settings -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-cog me-2"></i>Account Settings</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <h6>Account Status</h6>
+                                    <p class="mb-1">
+                                        <span class="badge bg-success">Active</span>
+                                    </p>
+                                    <small class="text-muted">Your account is active and in good standing</small>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <h6>Profile Privacy</h6>
+                                    <p class="mb-1">
+                                        <span class="badge bg-info">Public</span>
+                                    </p>
+                                    <small class="text-muted">Your profile is visible to other users</small>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <h6>Email Notifications</h6>
+                                    <p class="mb-1">
+                                        <span class="badge bg-success">Enabled</span>
+                                    </p>
+                                    <small class="text-muted">You receive email notifications</small>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <h6>Last Login</h6>
+                                    <p class="mb-1">
+                                        <i class="fas fa-sign-in-alt text-muted me-1"></i>
+                                        {{ user.last_login|timesince }} ago
+                                    </p>
+                                    <small class="text-muted">Your last login time</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'notifications' %}" class="btn btn-outline-secondary btn-sm me-2">
+                                    <i class="fas fa-bell me-1"></i>Notifications
+                                </a>
+                                <a href="{% url 'messages_list' %}" class="btn btn-outline-secondary btn-sm me-2">
+                                    <i class="fas fa-envelope me-1"></i>Messages
+                                </a>
+                                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

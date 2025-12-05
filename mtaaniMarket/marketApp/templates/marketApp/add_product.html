@@ -1,0 +1,247 @@
+{% extends 'main.html' %}
+
+{% block title %}Add Product - Mtaani Market{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-plus-circle me-2 text-success"></i>Add New Product</h2>
+                <a href="{% url 'seller_products' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Products
+                </a>
+            </div>
+            
+            <!-- Form Card -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Product Information</h5>
+                    <p class="mb-0 small">Fill in the details of your product below</p>
+                </div>
+                
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="form-group mb-3">
+                                    <label for="id_title" class="form-label">Product Title *</label>
+                                    <input type="text" name="title" id="id_title" class="form-control" 
+                                           placeholder="e.g., iPhone 13 Pro Max 256GB" required>
+                                    <div class="form-text">Be specific and descriptive</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="id_price" class="form-label">Price (Ksh) *</label>
+                                    <input type="number" name="price" id="id_price" class="form-control" 
+                                           placeholder="e.g., 45000" min="0" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="form-group mb-4">
+                            <label for="id_description" class="form-label">Description *</label>
+                            <textarea name="description" id="id_description" class="form-control" 
+                                      rows="5" placeholder="Describe your product in detail..." required></textarea>
+                            <div class="form-text">
+                                Include details about condition, specifications, reason for selling, etc.
+                            </div>
+                        </div>
+                        
+                        <!-- Category and Condition -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_category" class="form-label">Category *</label>
+                                    <select name="category" id="id_category" class="form-select" required>
+                                        <option value="">Select Category</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_condition" class="form-label">Condition *</label>
+                                    <select name="condition" id="id_condition" class="form-select" required>
+                                        <option value="">Select Condition</option>
+                                        <option value="new">Brand New</option>
+                                        <option value="like_new">Like New</option>
+                                        <option value="good">Good</option>
+                                        <option value="fair">Fair</option>
+                                        <option value="poor">Poor</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Details -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_brand" class="form-label">Brand (Optional)</label>
+                                    <input type="text" name="brand" id="id_brand" class="form-control" 
+                                           placeholder="e.g., Apple, Samsung, Nike">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_quantity" class="form-label">Quantity *</label>
+                                    <input type="number" name="quantity" id="id_quantity" class="form-control" 
+                                           value="1" min="1" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="form-group mb-3">
+                                    <label for="id_location" class="form-label">Location *</label>
+                                    <input type="text" name="location" id="id_location" class="form-control" 
+                                           placeholder="e.g., Nairobi, Westlands" required>
+                                    <div class="form-text">Where is the product located?</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                     <div class="form-group mb-4">
+    <label class="form-label">Product Images *</label>
+    <p class="text-muted small mb-2">Upload clear photos of your product (First image will be the main photo)</p>
+    <div class="drop-zone border rounded p-5 text-center bg-light" 
+         id="dropZone" 
+         style="border-style: dashed !important; cursor: pointer;">
+        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+        <p class="mb-2">Drag & drop images here or click to browse</p>
+        <input type="file" 
+               name="images" 
+               id="id_images" 
+               class="form-control-file d-none" 
+               accept="image/*" 
+               multiple 
+               required
+               onchange="previewImages(this)">
+        <button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="document.getElementById('id_images').click()">
+            <i class="fas fa-folder-open me-1"></i> Browse Files
+        </button>
+        <div class="form-text mt-2">Supported formats: JPG, PNG, GIF. Max 5MB per image</div>
+    </div>
+    <div id="imagePreview" class="mt-3 row g-2"></div>
+    <div class="form-text text-danger mt-2" id="imageError"></div>
+</div>
+
+                        <!-- Additional Options -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Additional Options</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_negotiable" id="id_is_negotiable" class="form-check-input" checked>
+                                    <label for="id_is_negotiable" class="form-check-label">
+                                        Price is negotiable
+                                    </label>
+                                    <div class="form-text">Buyers can negotiate the price with you</div>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input type="checkbox" name="is_featured" id="id_is_featured" class="form-check-input">
+                                    <label for="id_is_featured" class="form-check-label">
+                                        Feature this product (Additional fee may apply)
+                                    </label>
+                                    <div class="form-text">Featured products get more visibility</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'seller_products' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Add Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Tips Card -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for Better Listings</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Use clear, well-lit photos from multiple angles</li>
+                        <li>Be honest about the condition of your item</li>
+                        <li>Include all relevant details in the description</li>
+                        <li>Set a fair price based on similar items</li>
+                        <li>Respond quickly to buyer inquiries</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Image preview functionality
+document.getElementById('id_images').addEventListener('change', function(event) {
+    const previewContainer = document.getElementById('imagePreview');
+    previewContainer.innerHTML = '';
+    
+    const files = event.target.files;
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-4 col-md-3';
+                col.innerHTML = `
+                    <div class="position-relative">
+                        <img src="${e.target.result}" class="img-fluid rounded border" style="height: 100px; object-fit: cover;">
+                        <span class="position-absolute top-0 start-0 bg-primary text-white px-1 rounded small">${i + 1}</span>
+                    </div>
+                `;
+                previewContainer.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+});
+
+// Drag and drop functionality
+const dropZone = document.querySelector('.drop-zone');
+dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('border-success', 'bg-light');
+});
+
+dropZone.addEventListener('dragleave', function() {
+    this.classList.remove('border-success', 'bg-light');
+});
+
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('border-success', 'bg-light');
+    const files = e.dataTransfer.files;
+    document.getElementById('id_images').files = files;
+    
+    // Trigger change event
+    const event = new Event('change', { bubbles: true });
+    document.getElementById('id_images').dispatchEvent(event);
+});
+</script>
+{% endblock %}
+{% endblock %}
