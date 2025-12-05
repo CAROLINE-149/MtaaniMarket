@@ -1,10 +1,12 @@
 {% extends 'main.html' %}
 
 {% block content %}
-<form action="" method="POST">
-    {% csrf_token %}
- {{form.as_p}}
-    <button type="submit" class="btn btn-success">register</button>
-
-</form>
+<div class="container mt-5" style="max-width: 500px;">
+    <h2 class="mb-4 text-center">Register</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+    </form>
+</div>
 {% endblock %}
